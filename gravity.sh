@@ -36,7 +36,7 @@ VPNList="/etc/openvpn/ipp.txt"
 
 piholeGitDir="/etc/.pihole"
 gravityDBfile_default="${piholeDir}/gravity.db"
-# GRAVITYDB may be overwritten by source pihole-FTL.conf below
+# GRAVITYDB may be overwritten by pihole-FTL configuration below
 GRAVITYDB="${gravityDBfile_default}"
 gravityDBschema="${piholeGitDir}/advanced/Templates/gravity.db.sql"
 gravityDBcopy="${piholeGitDir}/advanced/Templates/gravity_copy.sql"
@@ -53,14 +53,15 @@ else
   exit 1
 fi
 
-# Source pihole-FTL from install script
-pihole_FTL="${piholeDir}/pihole-FTL.conf"
-if [[ -f "${pihole_FTL}" ]]; then
-  source "${pihole_FTL}"
+# Check if a custom path for gravity.db has been set
+config_file="${piholeDir}/pihole-FTL.conf"
+# Make a point to mention which config file we're checking, as breadcrumb to revisit if/when pihole-FTL.conf is succeeded by TOML
+echo "  Checking if custom gravity.db path is set in ${config_file}"
+if [[ -f "${config_file}" ]]; then
+    GRAVITYDB="$(grep --color=never -Po "^GRAVITYDB=\K.*" "${config_file}" 2> /dev/null || echo "${gravityDBfile_default}")"
 fi
 
-# Set this only after sourcing pihole-FTL.conf as the gravity database path may
-# have changed
+# Set this only after checking if gravity database path has changed
 gravityDBfile="${GRAVITYDB}"
 gravityTEMPfile="${GRAVITYDB}_temp"
 gravityDIR="$(dirname -- "${gravityDBfile}")"
